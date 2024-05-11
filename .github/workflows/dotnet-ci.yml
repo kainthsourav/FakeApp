@@ -1,4 +1,4 @@
-name: Build and Deploy .NET Solution
+name: Build Solution
 
 on:
   push:
@@ -13,47 +13,62 @@ on:
       - 'hotfix/*'
 
 jobs:
-  build-and-deploy:
-    name: Build and Generate Artifact
+  Restore-Dependencies:
+    name: Restore Dependencies 
     runs-on: windows-latest
 
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v2
 
-      # Read version from file
-      - name: Read Version from File
-        id: read-version
-        run: echo "::set-output name=version::$(cat VERSION.txt)"
-
       - name: Restore Dependencies
         run: |
           dotnet restore FakeApp.sln
-          
+
+  Build-Solution:
+    name: Build Solution 
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v2
+
       - name: Build Solution
         run: |
           dotnet build FakeApp.sln --configuration Release
 
+  Publish-Artifact:
+    name: Publish Artifact 
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v2
+
       - name: Publish Artifact
         run: |
-          dotnet publish FakeApp.sln -c Release -o ./publish/$VERSION
+          dotnet publish FakeApp.sln -c Release -o ./publish
 
-      - name: Archive Artifact
-        uses: actions/upload-artifact@v2
-        with:
-          name: FakeApp-Artifact-$VERSION
-          path: ./publish
+          - name: Get Timestamp
+            id: timestamp
+            run: echo "::set-output name=timestamp::$(date +%Y%m%d%H%M%S)"
 
-  show-artifact:
+          - name: Archive Artifact
+            uses: actions/upload-artifact@v2
+            with:
+              name: FakeApp-Artifact-${{ steps.timestamp.outputs.timestamp }}
+              path: ./publish
+
+  Show-Artifact:
     name: Show Artifact
-    needs: build-and-deploy
+    needs: Publish-Artifact
     runs-on: ubuntu-latest
 
     steps:
       - name: Download Artifact
         uses: actions/download-artifact@v2
         with:
-          name: FakeApp-Artifact-${{ coalesce(needs.build-and-deploy.outputs.version, steps.read-version.outputs.version) }}
+          name: FakeApp-Artifact-${{ needs.Publish-Artifact.outputs.timestamp }}
           path: ./downloaded-artifact
 
       - name: List Files

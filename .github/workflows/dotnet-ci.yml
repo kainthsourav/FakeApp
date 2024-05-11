@@ -1,4 +1,4 @@
-name: Build .NET Solution
+name: Build and Deploy .NET Solution
 
 on:
   push:
@@ -33,38 +33,23 @@ jobs:
         run: |
           dotnet publish FakeApp.sln -c Release -o ./publish
 
-          # Get current date in YYYYMMDD format
-          - name: Get Current Date
-            id: current_date
-            run: echo "::set-output name=date::$(date +'%Y%m%d')"
-
-          # Define custom version identifier (e.g., 'v1')
-          - name: Set Version Identifier
-            id: version_identifier
-            run: echo "::set-output name=version::v1"
-
-          # Combine date and version identifier to create version
-          - name: Generate Version
-            id: generated_version
-            run: echo "::set-output name=generated_version::${{ steps.current_date.outputs.date }}-${{ steps.version_identifier.outputs.version }}"
-
-          # Archive artifact with the generated version
+          # Archive artifact without versioning
           - name: Archive Artifact
             uses: actions/upload-artifact@v2
             with:
-              name: FakeApp-Artifact-${{ steps.generated_version.outputs.generated_version }}
+              name: FakeApp-Artifact
               path: ./publish
 
   show-artifact:
     name: Show Artifact
     needs: build-and-deploy
-    runs-on: ubuntu-latest
+    runs-on: windows-latest
 
     steps:
       - name: Download Artifact
         uses: actions/download-artifact@v2
         with:
-          name: FakeApp-Artifact-${{ needs.build-and-deploy.outputs.generated_version }}
+          name: FakeApp-Artifact
           path: ./downloaded-artifact
 
       - name: List Files

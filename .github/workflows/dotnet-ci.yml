@@ -13,44 +13,78 @@ on:
       - 'hotfix/*'
       
 jobs:
-  Build-Solution :
-    name: Build-Solution & Publish Artifact
+  clean-project:
+    name: Clean Project
     runs-on: windows-latest
     
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4.1.5
+        with:
+         fetch-depth: 0
         
       - name: Clean Project
         run: dotnet clean FakeApp.sln
-        
+
+  Restore-Dependencies:
+    name: Restore Dependencies
+    needs: clean-project
+    runs-on: windows-latest
+    
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4.1.5
+        with:
+         fetch-depth: 0
+
       - name: Restore Dependencies
         run: |
           dotnet restore FakeApp.sln
+
+  Build-Solution:
+    name: Build Solution
+    needs: Restore-Dependencies
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4.1.5
+        with:
+         fetch-depth: 0
 
       - name: Build Solution
         run: |
           dotnet build FakeApp.sln --configuration Release
 
+  Publish-Artifact:
+    name: Publish Artifact
+    needs: Build-Solution
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4.1.5
+        with:
+         fetch-depth: 0
+        
       - name: Publish Artifact
         run: |
           dotnet publish FakeApp.sln -c Release -o ./publish
 
       - name: Archive Artifact
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4.3.3
         with:
           name: FakeApp-Artifact
           path: ./publish
-          
 
   show-artifact:
     name: Show Artifact
-    needs: Build-Solution
+    needs: Publish-Artifact
     runs-on: windows-latest
 
     steps:
       - name: Download Artifact
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v4.1.7
         with:
           name: FakeApp-Artifact
           path: ./downloaded-artifact

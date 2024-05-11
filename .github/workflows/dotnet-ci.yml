@@ -14,10 +14,13 @@ on:
 
 jobs:
   build:
-    name : Restore Nuget
+    name: Restore Nuget and Build Solution
     runs-on: windows-latest
     steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v2
+
       - name: Restore Dependencies and Build Solution
         run: |
-          dotnet restore /FakeApp.sln
-          dotnet build /FakeApp.sln --configuration Release
+          dotnet restore FakeApp.sln
+          dotnet build FakeApp.sln --configuration Release

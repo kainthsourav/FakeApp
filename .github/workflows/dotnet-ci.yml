@@ -21,6 +21,11 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v2
 
+      # Read version from file
+      - name: Read Version from File
+        id: read-version
+        run: echo "::set-output name=version::$(cat VERSION.txt)"
+
       - name: Restore Dependencies
         run: |
           dotnet restore FakeApp.sln
@@ -28,13 +33,6 @@ jobs:
       - name: Build Solution
         run: |
           dotnet build FakeApp.sln --configuration Release
-
-      - name: Get Latest Version
-        id: get-latest-version
-        run: |
-          # Extract the latest version from a file or any other source
-          # For example, you can read it from a VERSION.txt file
-          echo "::set-output name=version::$(cat VERSION.txt)"
 
       - name: Publish Artifact
         run: |
@@ -49,13 +47,13 @@ jobs:
   show-artifact:
     name: Show Artifact
     needs: build-and-deploy
-    runs-on: windows-latest
+    runs-on: ubuntu-latest
 
     steps:
       - name: Download Artifact
         uses: actions/download-artifact@v2
         with:
-          name: FakeApp-Artifact-${{ needs.build-and-deploy.outputs.version }}
+          name: FakeApp-Artifact-${{ coalesce(needs.build-and-deploy.outputs.version, steps.read-version.outputs.version) }}
           path: ./downloaded-artifact
 
       - name: List Files

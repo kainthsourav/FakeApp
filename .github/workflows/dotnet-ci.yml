@@ -43,6 +43,9 @@ jobs:
     runs-on: windows-latest
 
     steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v2
+
       - name: Build Solution
         run: |
           dotnet build FakeApp.sln --configuration Release
@@ -53,6 +56,9 @@ jobs:
     runs-on: windows-latest
 
     steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v2
+        
       - name: Publish Artifact
         run: |
           dotnet publish FakeApp.sln -c Release -o ./publish

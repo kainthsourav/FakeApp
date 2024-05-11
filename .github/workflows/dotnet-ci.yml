@@ -23,7 +23,6 @@ jobs:
 
       - name: Clean Project
         run: |
-          # Delete existing build artifacts or dependencies
           dotnet clean FakeApp.sln
 
       - name: Restore Dependencies

@@ -11,6 +11,7 @@ on:
       - 'feature/*'
       - 'bug/*'
       - 'hotfix/*'
+  workflow_dispatch:
       
 jobs:
   clean-project:

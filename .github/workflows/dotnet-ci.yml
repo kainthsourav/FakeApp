@@ -18,6 +18,9 @@ jobs:
     runs-on: windows-latest
     
     steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v2
+        
       - name: Clean Project
         run: dotnet clean FakeApp.sln
 

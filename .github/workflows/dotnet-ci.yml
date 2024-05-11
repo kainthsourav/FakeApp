@@ -33,17 +33,16 @@ jobs:
         run: |
           dotnet publish FakeApp.sln -c Release -o ./publish
 
-          # Archive artifact without versioning
-          - name: Archive Artifact
-            uses: actions/upload-artifact@v2
-            with:
-              name: FakeApp-Artifact
-              path: ./publish
+      - name: Archive Artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: FakeApp-Artifact
+          path: ./publish
 
   show-artifact:
     name: Show Artifact
     needs: build-and-deploy
-    runs-on: windows-latest
+    runs-on: ubuntu-latest
 
     steps:
       - name: Download Artifact

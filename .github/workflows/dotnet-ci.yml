@@ -19,5 +19,5 @@ jobs:
     steps:
       - name: Restore Dependencies and Build Solution
         run: |
-          dotnet restore ${{ github.workspace }}\FakeApp.sln
-          dotnet build ${{ github.workspace }}\FakeApp.sln --configuration Release
+          dotnet restore FakeApp.sln
+          dotnet build FakeApp.sln --configuration Release

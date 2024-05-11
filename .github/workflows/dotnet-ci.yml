@@ -13,7 +13,7 @@ on:
       - 'hotfix/*'
 
 jobs:
-  Restore-Dependencies:
+  restore-dependencies:
     name: Restore Dependencies 
     runs-on: windows-latest
 
@@ -25,9 +25,10 @@ jobs:
         run: |
           dotnet restore FakeApp.sln
 
-  Build-Solution:
+  build-solution:
     name: Build Solution 
     runs-on: windows-latest
+    needs: restore-dependencies
 
     steps:
       - name: Checkout Repository
@@ -37,9 +38,10 @@ jobs:
         run: |
           dotnet build FakeApp.sln --configuration Release
 
-  Publish-Artifact:
+  publish-artifact:
     name: Publish Artifact 
     runs-on: windows-latest
+    needs: build-solution
 
     steps:
       - name: Checkout Repository
@@ -59,16 +61,16 @@ jobs:
               name: FakeApp-Artifact-${{ steps.timestamp.outputs.timestamp }}
               path: ./publish
 
-  Show-Artifact:
+  show-artifact:
     name: Show Artifact
-    needs: Publish-Artifact
-    runs-on: ubuntu-latest
+    runs-on: windows-latest
+    needs: publish-artifact
 
     steps:
       - name: Download Artifact
         uses: actions/download-artifact@v2
         with:
-          name: FakeApp-Artifact-${{ needs.Publish-Artifact.outputs.timestamp }}
+          name: FakeApp-Artifact-${{ needs.publish-artifact.outputs.timestamp }}
           path: ./downloaded-artifact
 
       - name: List Files

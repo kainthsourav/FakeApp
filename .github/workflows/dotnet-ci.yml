@@ -14,13 +14,53 @@ on:
 
 jobs:
   build:
-    name: Restore Nuget and Build Solution
+    name: Build and Generate Artifact
     runs-on: windows-latest
+
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v2
 
-      - name: Restore Dependencies and Build Solution
+      - name: Restore Dependencies
         run: |
           dotnet restore FakeApp.sln
+          
+      - name: Build Solution
+        run: |
           dotnet build FakeApp.sln --configuration Release
+
+      - name: Get Latest Version
+        id: get-latest-version
+        run: |
+          # Extract the latest version from a file or any other source
+          # For example, you can read it from a VERSION.txt file
+          echo "::set-output name=version::$(cat VERSION.txt)"
+
+      - name: Publish Artifact
+        run: |
+          dotnet publish FakeApp.sln -c Release -o ./publish/$VERSION
+
+      - name: Archive Artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: FakeApp-Artifact-$VERSION
+          path: ./publish
+
+  show-artifact:
+    name: Show Artifact
+    needs: build
+    runs-on: windows-latest
+
+    steps:
+      - name: Download Artifact
+        uses: actions/download-artifact@v2
+        with:
+          name: FakeApp-Artifact-${{ needs.build-and-deploy.outputs.version }}
+          path: ./downloaded-artifact
+
+      - name: List Files
+        run: ls ./downloaded-artifact
+
+      - name: Provide Artifact Link
+        run: |
+          echo "Artifact download link: ${{ steps.download-artifact.outputs.artifact_url }}"

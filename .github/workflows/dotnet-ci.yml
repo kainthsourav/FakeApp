@@ -21,6 +21,11 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v2
 
+      - name: Clean Project
+        run: |
+          # Delete existing build artifacts or dependencies
+          dotnet clean FakeApp.sln
+
       - name: Restore Dependencies
         run: |
           dotnet restore FakeApp.sln
@@ -53,7 +58,7 @@ jobs:
 
           - name: Get Timestamp
             id: timestamp
-            run: echo "::set-output name=timestamp::$(date +%Y%m%d%H%M%S)"
+            run: echo "::set-output name=timestamp::$(date +'%d.%H.%M')"
 
           - name: Archive Artifact
             uses: actions/upload-artifact@v2

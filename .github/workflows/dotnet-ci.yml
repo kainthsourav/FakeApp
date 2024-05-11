@@ -63,7 +63,7 @@ jobs:
 
   show-artifact:
     name: Show Artifact
-    runs-on: windows-latest
+    runs-on: ubuntu-latest
     needs: publish-artifact
 
     steps:

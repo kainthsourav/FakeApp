@@ -19,5 +19,5 @@ jobs:
     steps:
       - name: Restore Dependencies and Build Solution
         run: |
-          dotnet restore FakeApp.sln
-          dotnet build FakeApp.sln --configuration Release
+          dotnet restore /FakeApp.sln
+          dotnet build /FakeApp.sln --configuration Release

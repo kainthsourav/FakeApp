@@ -1,4 +1,4 @@
-name: Build .NET Solution
+name: Build and Deploy .NET Solution
 
 on:
   push:
@@ -13,7 +13,7 @@ on:
       - 'hotfix/*'
 
 jobs:
-  build:
+  build-and-deploy:
     name: Build and Generate Artifact
     runs-on: windows-latest
 
@@ -48,7 +48,7 @@ jobs:
 
   show-artifact:
     name: Show Artifact
-    needs: build
+    needs: build-and-deploy
     runs-on: windows-latest
 
     steps:

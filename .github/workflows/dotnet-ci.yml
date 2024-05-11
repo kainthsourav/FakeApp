@@ -3,13 +3,10 @@ name: Build .NET Solution
 on:
   push:
     branches:
-      - 'feature/*'
-      - 'bug/*'
-      - 'hotfix/*'
-  pull_request:
-    branches:
-      - develop 
-      - 'release/*'
+     - feature/**
+     - develop
+     - release/**
+     - hotfix/*
   workflow_dispatch:
       
 jobs:

@@ -8,7 +8,7 @@ on:
       - 'hotfix/*'
   pull_request:
     branches:
-      - develope 
+      - develop 
       - 'release/*'
   workflow_dispatch:
       

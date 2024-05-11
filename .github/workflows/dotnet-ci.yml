@@ -39,6 +39,7 @@ jobs:
   publish-artifact:
     name: Publish Artifact 
     runs-on: windows-latest
+    needs: build-solution
 
     steps:
       - name: Publish Artifact

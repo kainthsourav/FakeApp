@@ -81,39 +81,30 @@ jobs:
     name: Deploy to EC2
     needs: publish-artifact
     runs-on: windows-latest
-    if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.environment != null }}
+
     steps:
       - name: Download Artifact
-        uses: actions/download-artifact@v4.1.7
+        uses: actions/download-artifact@v2
         with:
           name: FakeApp-Artifact
-          path: ./downloaded-artifact
+          path: ./fakeapp-artifact
 
-      - name: Install WinRM
-        run: |
-          winrm quickconfig -q
-          winrm set winrm/config/winrs @{MaxMemoryPerShellMB="300"}
-          winrm set winrm/config '@{MaxTimeoutms="1800000"}'
-          winrm set winrm/config/service '@{AllowUnencrypted="true"}'
-          winrm set winrm/config/service/auth '@{Basic="true"}'
-          winrm set winrm/config/service/auth '@{CredSSP="true"}'
-          winrm set winrm/config/client/auth '@{CredSSP="true"}'
-
-      - name: Copy Artifact
+      - name: Copy Artifact to EC2
         uses: appleboy/scp-action@master
         with:
-          host: ${{ secrets['EC2_HOST_' + github.event.inputs.environment] }}
-          username: ${{ secrets['EC2_USERNAME_' + github.event.inputs.environment] }}
-          key: ${{ secrets['SSH_PRIVATE_KEY_' + github.event.inputs.environment] }}
-          source: "./downloaded-artifact/*"
-          target: "C:\\inetpub\\wwwroot\\FakeApp"
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USERNAME }}
+          key: ${{ secrets.EC2_PRIVATE_KEY }}
+          source: ./fakeapp-artifact
+          target: C:\inetpub\wwwroot\FakeApp  # Change this to your application folder under Default Web Site
 
-      - name: Execute Remote Command
-        uses: appleboy/psexec-action@master
+      - name: Remote Execution
+        uses: appleboy/ssh-action@master
         with:
-          host: ${{ secrets['EC2_HOST_' + github.event.inputs.environment] }}
-          username: ${{ secrets['EC2_USERNAME_' + github.event.inputs.environment] }}
-          password: ${{ secrets['EC2_PASSWORD_' + github.event.inputs.environment] }}
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USERNAME }}
+          key: ${{ secrets.EC2_PRIVATE_KEY }}
+          port: ${{ secrets.EC2_PORT }}
           script: |
-            net stop YourApp
-            net start YourApp
+            # Restart IIS to apply changes
+            iisreset /restart

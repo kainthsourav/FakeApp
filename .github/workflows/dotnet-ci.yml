@@ -37,19 +37,9 @@ jobs:
       - name: Restore Dependencies
         run: dotnet restore FakeApp.sln
 
-  # generate-version:
-  #   name: Generate Version
-  #   needs: restore-dependencies
-  #   runs-on: ubuntu-latest
-    
-  #   steps:
-  #     - name: Generate Version
-  #       id: generate_version
-  #       run: echo "::set-output name=new_version::$(date +'%Y.%m.%d-%H%M%S')"
-
   build-solution:
     name: Build Solution
-    needs: generate-version
+    needs: restore-dependencies
     runs-on: windows-latest
 
     steps:

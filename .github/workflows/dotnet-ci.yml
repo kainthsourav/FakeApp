@@ -3,10 +3,10 @@ name: Build .NET Solution
 on:
   push:
     branches:
-     - feature/**
-     - develop
-     - release/**
-     - hotfix/*
+      - feature/**
+      - develop
+      - release/**
+      - hotfix/*
   workflow_dispatch:
 
 jobs:
@@ -18,10 +18,25 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4.1.5
         with:
-         fetch-depth: 0
+          fetch-depth: 0
         
       - name: Clean Project
         run: dotnet clean FakeApp.sln
+
+  Increment-Version:
+    name: Increment Version
+    runs-on: windows-latest
+    
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4.1.5
+        with:
+          fetch-depth: 0
+
+      - name: Generate New Version
+        id: generate_version
+        run: |
+          echo "::set-output name=new_version::1.0.$(((${GITHUB_RUN_NUMBER:-0} - 1) % 10000))"
 
   Restore-Dependencies:
     name: Restore Dependencies
@@ -32,7 +47,7 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4.1.5
         with:
-         fetch-depth: 0
+          fetch-depth: 0
 
       - name: Restore Dependencies
         run: |
@@ -40,18 +55,30 @@ jobs:
 
   Build-Solution:
     name: Build Solution
-    needs: Restore-Dependencies
+    needs: [Restore-Dependencies, Increment-Version]
     runs-on: windows-latest
 
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4.1.5
         with:
-         fetch-depth: 0
+          fetch-depth: 0
+
+      - name: Update AssemblyInfo.cs
+        run: |
+          lastVersion=${{ needs.version.outputs.new_version }}
+          fileContent=$(<AssemblyInfo.cs)
+          parts=(${fileContent//\(/ }) # Split by "("
+          old="${parts[-2]}(${parts[-1]}"
+          new="${parts[-2]}('${lastVersion}')"
+          echo "$old >> $new"
+          newFileContent=${fileContent//$old/$new}
+          echo "$newFileContent" > AssemblyInfo.cs
+          cat AssemblyInfo.cs
 
       - name: Build Solution
         run: |
-          dotnet build FakeApp.sln --configuration Release
+          dotnet build FakeApp.sln --configuration Release /p:Version=${{ steps.generate_version.outputs.new_version }}
 
   Publish-Artifact:
     name: Publish Artifact
@@ -62,16 +89,16 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4.1.5
         with:
-         fetch-depth: 0
+          fetch-depth: 0
         
       - name: Publish Artifact
         run: |
-          dotnet publish FakeApp.sln -c Release -o ./publish
+          dotnet publish FakeApp.sln -c Release -o ./publish /p:Version=${{ steps.generate_version.outputs.new_version }}
 
       - name: Archive Artifact
         uses: actions/upload-artifact@v4.3.3
         with:
-          name: FakeApp-Artifact
+          name: FakeApp-${{ steps.generate_version.outputs.new_version }}
           path: ./publish
 
   show-artifact:
@@ -83,7 +110,7 @@ jobs:
       - name: Download Artifact
         uses: actions/download-artifact@v4.1.7
         with:
-          name: FakeApp-Artifact
+          name: FakeApp-${{ steps.generate_version.outputs.new_version }}
           path: ./downloaded-artifact
 
       - name: List Files
@@ -92,16 +119,3 @@ jobs:
       - name: Provide Artifact Link
         run: |
           echo "Artifact download link: ${{ steps.download-artifact.outputs.artifact_url }}"
-
-  # New job for releasing the project
-  release-project:
-    name: Release Project
-    needs: Publish-Artifact
-    runs-on: ubuntu-latest
-    if: github.event_name == 'workflow_dispatch'
-    steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v4
-
-      - name: Release
-        uses: huggingface/semver-release-action@latest

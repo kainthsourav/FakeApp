@@ -65,25 +65,25 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Find AssemblyInfo.cs File
-        id: find_assemblyinfo
-        run: |
-         $assemblyInfoPath = Get-ChildItem -Path . -Recurse -Filter "FakeApp.AssemblyInfo.cs" | Select-Object -ExpandProperty FullName
-         echo "::set-output name=assembly_info_path::$assemblyInfoPath"
-         shell: pwsh
+      # - name: Find AssemblyInfo.cs File
+      #   id: find_assemblyinfo
+      #   run: |
+      #    $assemblyInfoPath = Get-ChildItem -Path . -Recurse -Filter "FakeApp.AssemblyInfo.cs" | Select-Object -ExpandProperty FullName
+      #    echo "::set-output name=assembly_info_path::$assemblyInfoPath"
+      #    shell: pwsh
 
-      - name: Update AssemblyInfo.cs
-        run: |
-          lastVersion=${{ needs.version.outputs.new_version }}
-          fileContent=$(<${{ steps.find_assemblyinfo.outputs.assembly_info_path }})
-          parts=(${fileContent//\(/ }) # Split by "("
-          old="${parts[-2]}(${parts[-1]}"
-          new="${parts[-2]}('${lastVersion}')"
-          echo "$old >> $new"
-          newFileContent=${fileContent//$old/$new}
-          echo "$newFileContent" > ${{ steps.find_assemblyinfo.outputs.assembly_info_path }}
-          cat ${{ steps.find_assemblyinfo.outputs.assembly_info_path }}
-          shell: pwsh
+      # - name: Update AssemblyInfo.cs
+      #   run: |
+      #     lastVersion=${{ needs.version.outputs.new_version }}
+      #     fileContent=$(<${{ steps.find_assemblyinfo.outputs.assembly_info_path }})
+      #     parts=(${fileContent//\(/ }) # Split by "("
+      #     old="${parts[-2]}(${parts[-1]}"
+      #     new="${parts[-2]}('${lastVersion}')"
+      #     echo "$old >> $new"
+      #     newFileContent=${fileContent//$old/$new}
+      #     echo "$newFileContent" > ${{ steps.find_assemblyinfo.outputs.assembly_info_path }}
+      #     cat ${{ steps.find_assemblyinfo.outputs.assembly_info_path }}
+      #     shell: pwsh
 
       - name: Build Solution
         run: |
@@ -102,7 +102,8 @@ jobs:
         
       - name: Publish Artifact
         run: |
-          dotnet publish FakeApp.sln -c Release -o ./publish /p:Version=${{ steps.generate_version.outputs.new_version }}
+            dotnet publish FakeApp.sln -c Release -o ./publish /p:Version=${{ steps.generate_version.outputs.new_version }}
+
 
       - name: Archive Artifact
         uses: actions/upload-artifact@v4.3.3

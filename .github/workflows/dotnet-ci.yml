@@ -1,4 +1,4 @@
-name: Build and Publish
+name: Build, Publish, and Deploy
 
 on:
   push:
@@ -8,6 +8,10 @@ on:
       - release/**
       - hotfix/*
   workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to deploy to (e.g., development, staging, production)'
+        required: false
 
 jobs:
   clean-project:
@@ -73,11 +77,11 @@ jobs:
           name: FakeApp-Artifact
           path: ./publish
 
-  show-artifact:
-    name: Show Artifact
+  deploy-to-ec2:
+    name: Deploy to EC2
     needs: publish-artifact
-    runs-on: ubuntu-latest
-
+    runs-on: windows-latest
+    if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.environment != null }}
     steps:
       - name: Download Artifact
         uses: actions/download-artifact@v4.1.7
@@ -85,9 +89,31 @@ jobs:
           name: FakeApp-Artifact
           path: ./downloaded-artifact
 
-      - name: List Files
-        run: ls ./downloaded-artifact
-
-      - name: Provide Artifact Link
+      - name: Install WinRM
         run: |
-          echo "Artifact download link: ${{ steps.download-artifact.outputs.artifact_url }}"
+          winrm quickconfig -q
+          winrm set winrm/config/winrs @{MaxMemoryPerShellMB="300"}
+          winrm set winrm/config '@{MaxTimeoutms="1800000"}'
+          winrm set winrm/config/service '@{AllowUnencrypted="true"}'
+          winrm set winrm/config/service/auth '@{Basic="true"}'
+          winrm set winrm/config/service/auth '@{CredSSP="true"}'
+          winrm set winrm/config/client/auth '@{CredSSP="true"}'
+
+      - name: Copy Artifact
+        uses: appleboy/scp-action@master
+        with:
+          host: ${{ secrets.EC2_HOST_${{ github.event.inputs.environment }} }}
+          username: ${{ secrets.EC2_USERNAME_${{ github.event.inputs.environment }} }}
+          key: ${{ secrets.SSH_PRIVATE_KEY_${{ github.event.inputs.environment }} }}
+          source: "./downloaded-artifact/*"
+          target: "C:\\inetpub\\wwwroot\\FakeApp"
+
+      - name: Execute Remote Command
+        uses: appleboy/psexec-action@master
+        with:
+          host: ${{ secrets.EC2_HOST_${{ github.event.inputs.environment }} }}
+          username: ${{ secrets.EC2_USERNAME_${{ github.event.inputs.environment }} }}
+          password: ${{ secrets.EC2_PASSWORD_${{ github.event.inputs.environment }} }}
+          script: |
+            net stop YourApp
+            net start YourApp

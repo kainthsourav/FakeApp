@@ -68,8 +68,9 @@ jobs:
       - name: Find AssemblyInfo.cs File
         id: find_assemblyinfo
         run: |
-          assemblyInfoPath=$(Get-ChildItem -Path . -Recurse -Filter "FakeApp.AssemblyInfo.cs" | Select-Object -ExpandProperty FullName)
-          echo "::set-output name=assembly_info_path::$assemblyInfoPath"
+         $assemblyInfoPath = Get-ChildItem -Path . -Recurse -Filter "FakeApp.AssemblyInfo.cs" | Select-Object -ExpandProperty FullName
+         echo "::set-output name=assembly_info_path::$assemblyInfoPath"
+         shell: pwsh
 
       - name: Update AssemblyInfo.cs
         run: |

@@ -10,21 +10,8 @@ on:
   workflow_dispatch:
 
 jobs:
-  clean-project:
-    name: Clean Project
-    runs-on: windows-latest
-    
-    steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v4.1.5
-        with:
-          fetch-depth: 0
-        
-      - name: Clean Project
-        run: dotnet clean FakeApp.sln
-
-  Increment-Version:
-    name: Increment Version
+  Set-Version:
+    name: Set-Version 
     runs-on: windows-latest
     
     steps:
@@ -38,6 +25,20 @@ jobs:
         run: |
           echo "::set-output name=new_version::1.0.$(((${GITHUB_RUN_NUMBER:-0} - 1) % 10000))"
 
+  clean-project:
+    name: Clean Project
+    needs: Set-Version
+    runs-on: windows-latest
+    
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4.1.5
+        with:
+          fetch-depth: 0
+        
+      - name: Clean Project
+        run: dotnet clean FakeApp.sln
+        
   Restore-Dependencies:
     name: Restore Dependencies
     needs: clean-project
@@ -55,7 +56,7 @@ jobs:
 
   Build-Solution:
     name: Build Solution
-    needs: [Restore-Dependencies, Increment-Version]
+    needs: Restore-Dependencies
     runs-on: windows-latest
 
     steps:
@@ -75,6 +76,7 @@ jobs:
           newFileContent=${fileContent//$old/$new}
           echo "$newFileContent" > AssemblyInfo.cs
           cat AssemblyInfo.cs
+          shell: pwsh
 
       - name: Build Solution
         run: |

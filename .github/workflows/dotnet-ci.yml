@@ -102,18 +102,18 @@ jobs:
       - name: Copy Artifact
         uses: appleboy/scp-action@master
         with:
-          host: ${{ secrets.EC2_HOST_${{ github.event.inputs.environment }} }}
-          username: ${{ secrets.EC2_USERNAME_${{ github.event.inputs.environment }} }}
-          key: ${{ secrets.SSH_PRIVATE_KEY_${{ github.event.inputs.environment }} }}
+          host: ${{ secrets['EC2_HOST_' + github.event.inputs.environment] }}
+          username: ${{ secrets['EC2_USERNAME_' + github.event.inputs.environment] }}
+          key: ${{ secrets['SSH_PRIVATE_KEY_' + github.event.inputs.environment] }}
           source: "./downloaded-artifact/*"
           target: "C:\\inetpub\\wwwroot\\FakeApp"
 
       - name: Execute Remote Command
         uses: appleboy/psexec-action@master
         with:
-          host: ${{ secrets.EC2_HOST_${{ github.event.inputs.environment }} }}
-          username: ${{ secrets.EC2_USERNAME_${{ github.event.inputs.environment }} }}
-          password: ${{ secrets.EC2_PASSWORD_${{ github.event.inputs.environment }} }}
+          host: ${{ secrets['EC2_HOST_' + github.event.inputs.environment] }}
+          username: ${{ secrets['EC2_USERNAME_' + github.event.inputs.environment] }}
+          password: ${{ secrets['EC2_PASSWORD_' + github.event.inputs.environment] }}
           script: |
             net stop YourApp
             net start YourApp

@@ -22,12 +22,12 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4.1.5
         with:
-          fetch-depth: 0
+         fetch-depth: 0
         
       - name: Clean Project
         run: dotnet clean FakeApp.sln
 
-  restore-dependencies:
+  Restore-Dependencies:
     name: Restore Dependencies
     needs: clean-project
     runs-on: windows-latest
@@ -36,36 +36,37 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4.1.5
         with:
-          fetch-depth: 0
+         fetch-depth: 0
 
       - name: Restore Dependencies
-        run: dotnet restore FakeApp.sln
+        run: |
+          dotnet restore FakeApp.sln
 
-  build-solution:
+  Build-Solution:
     name: Build Solution
-    needs: restore-dependencies
+    needs: Restore-Dependencies
     runs-on: windows-latest
 
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4.1.5
         with:
-          fetch-depth: 0
+         fetch-depth: 0
 
       - name: Build Solution
         run: |
           dotnet build FakeApp.sln --configuration Release
 
-  publish-artifact:
+  Publish-Artifact:
     name: Publish Artifact
-    needs: build-solution
+    needs: Build-Solution
     runs-on: windows-latest
 
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4.1.5
         with:
-          fetch-depth: 0
+         fetch-depth: 0
         
       - name: Publish Artifact
         run: |
@@ -79,14 +80,14 @@ jobs:
 
   deploy-to-ec2:
     name: Deploy to EC2
-    needs: publish-artifact
+    needs: Publish-Artifact
     runs-on: windows-latest
 
     steps:
       - name: Download Artifact
         uses: actions/download-artifact@v2
         with:
-          name: FakeApp-Artifact
+          name: FakeApp-Artifact  # Ensure the artifact name matches the one published
           path: ./fakeapp-artifact
 
       - name: Copy Artifact to EC2

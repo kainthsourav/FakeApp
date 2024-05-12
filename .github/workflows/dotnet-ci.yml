@@ -37,15 +37,15 @@ jobs:
       - name: Restore Dependencies
         run: dotnet restore FakeApp.sln
 
-  generate-version:
-    name: Generate Version
-    needs: restore-dependencies
-    runs-on: ubuntu-latest
+  # generate-version:
+  #   name: Generate Version
+  #   needs: restore-dependencies
+  #   runs-on: ubuntu-latest
     
-    steps:
-      - name: Generate Version
-        id: generate_version
-        run: echo "::set-output name=new_version::$(date +'%Y.%m.%d-%H%M%S')"
+  #   steps:
+  #     - name: Generate Version
+  #       id: generate_version
+  #       run: echo "::set-output name=new_version::$(date +'%Y.%m.%d-%H%M%S')"
 
   build-solution:
     name: Build Solution
@@ -60,7 +60,7 @@ jobs:
 
       - name: Build Solution
         run: |
-          dotnet build FakeApp.sln --configuration Release /p:Version=${{ steps.generate_version.outputs.new_version }}
+          dotnet build FakeApp.sln --configuration Release
 
   publish-artifact:
     name: Publish Artifact

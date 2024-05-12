@@ -65,17 +65,23 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Find AssemblyInfo.cs File
+        id: find_assemblyinfo
+        run: |
+          assemblyInfoPath=$(Get-ChildItem -Path . -Recurse -Filter "FakeApp.AssemblyInfo.cs" | Select-Object -ExpandProperty FullName)
+          echo "::set-output name=assembly_info_path::$assemblyInfoPath"
+
       - name: Update AssemblyInfo.cs
         run: |
           lastVersion=${{ needs.version.outputs.new_version }}
-          fileContent=$(<AssemblyInfo.cs)
+          fileContent=$(<${{ steps.find_assemblyinfo.outputs.assembly_info_path }})
           parts=(${fileContent//\(/ }) # Split by "("
           old="${parts[-2]}(${parts[-1]}"
           new="${parts[-2]}('${lastVersion}')"
           echo "$old >> $new"
           newFileContent=${fileContent//$old/$new}
-          echo "$newFileContent" > AssemblyInfo.cs
-          cat AssemblyInfo.cs
+          echo "$newFileContent" > ${{ steps.find_assemblyinfo.outputs.assembly_info_path }}
+          cat ${{ steps.find_assemblyinfo.outputs.assembly_info_path }}
           shell: pwsh
 
       - name: Build Solution

@@ -8,7 +8,7 @@ on:
      - release/**
      - hotfix/*
   workflow_dispatch:
-      
+
 jobs:
   clean-project:
     name: Clean Project
@@ -92,3 +92,16 @@ jobs:
       - name: Provide Artifact Link
         run: |
           echo "Artifact download link: ${{ steps.download-artifact.outputs.artifact_url }}"
+
+  # New job for releasing the project
+  release-project:
+    name: Release Project
+    needs: Publish-Artifact
+    runs-on: ubuntu-latest
+    if: github.event_name == 'workflow_dispatch'
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Release
+        uses: huggingface/semver-release-action@latest
